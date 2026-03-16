@@ -14,8 +14,8 @@ export type TeamSummary = {
 
 async function get(action: string) {
   const res = await fetch(`/api/sheet?action=${action}`);
-  const json = await res.json();
-  return json;
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
 }
 
 export async function fetchPlayers(): Promise<Player[]> {

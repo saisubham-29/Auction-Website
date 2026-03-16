@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { fetchPlayers, fetchTeamSummary, fetchTeamNames, addTeam, submitPlayer, Player, TeamSummary } from "./lib/api";
 import AuctionTable from "./components/AuctionTable";
 import TeamSummaryTable from "./components/TeamSummary";
+import Charts from "./components/Charts";
 
 const SLIDES = [
   { url: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&q=80", caption: "The Game Begins", sub: "Season 2026 Auction" },
@@ -16,7 +17,7 @@ export default function Dashboard() {
   const [teamSummary, setTeamSummary] = useState<TeamSummary[]>([]);
   const [teamNames, setTeamNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"players" | "teams" | "add" | "manage">("players");
+  const [tab, setTab] = useState<"players" | "teams" | "charts" | "add" | "manage">("players");
   const [slide, setSlide] = useState(0);
   const [muted, setMuted] = useState(true);
   const [formStatus, setFormStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -131,6 +132,7 @@ export default function Dashboard() {
             {([
               { key: "players", label: "🏏 Players" },
               { key: "teams", label: "🏆 Team Summary" },
+              { key: "charts", label: "📈 Charts" },
               { key: "add", label: "➕ Add Entry" },
               { key: "manage", label: "⚙️ Manage Teams" },
             ] as const).map(({ key, label }) => (
@@ -156,6 +158,9 @@ export default function Dashboard() {
 
             {/* TEAMS */}
             {tab === "teams" && <TeamSummaryTable data={teamSummary} />}
+
+            {/* CHARTS */}
+            {tab === "charts" && <Charts players={players} teamSummary={teamSummary} />}
 
             {/* ADD ENTRY */}
             {tab === "add" && (
