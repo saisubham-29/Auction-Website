@@ -9,7 +9,7 @@ import { Player, TeamSummary } from "../lib/api";
 
 const COLORS = ["#eab308","#22c55e","#3b82f6","#f97316","#a855f7","#ec4899","#14b8a6","#f43f5e"];
 
-const fmt = (v: number) => `₹${v >= 1e6 ? (v / 1e6).toFixed(1) + "L" : v.toLocaleString()}`;
+const fmt = (v: number | string | undefined) => { const n = Number(v); return `₹${n >= 1e6 ? (n / 1e6).toFixed(1) + "L" : n.toLocaleString()}`; };
 
 export default function Charts({ players, teamSummary }: { players: Player[]; teamSummary: TeamSummary[] }) {
   // 1. Spend per team (bar)
@@ -54,7 +54,7 @@ export default function Charts({ players, teamSummary }: { players: Player[]; te
             <BarChart data={spendData} margin={{ top: 0, right: 10, left: 0, bottom: 40 }}>
               <XAxis dataKey="name" tick={{ fill: "#9ca3af", fontSize: 11 }} angle={-30} textAnchor="end" interval={0} />
               <YAxis tickFormatter={fmt} tick={{ fill: "#6b7280", fontSize: 10 }} width={55} />
-              <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }} labelStyle={{ color: "#f9fafb" }} />
+              <Tooltip formatter={(v) => fmt(v)} contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }} labelStyle={{ color: "#f9fafb" }} />
               <Bar dataKey="spent" name="Spent" fill="#eab308" radius={[4, 4, 0, 0]} />
               <Bar dataKey="remaining" name="Remaining" fill="#22c55e" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -86,7 +86,7 @@ export default function Charts({ players, teamSummary }: { players: Player[]; te
             <BarChart data={topPlayers} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
               <XAxis type="number" tickFormatter={fmt} tick={{ fill: "#6b7280", fontSize: 10 }} />
               <YAxis type="category" dataKey="name" tick={{ fill: "#9ca3af", fontSize: 11 }} width={90} />
-              <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }} labelStyle={{ color: "#f9fafb" }} />
+              <Tooltip formatter={(v) => fmt(v)} contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }} labelStyle={{ color: "#f9fafb" }} />
               <Bar dataKey="sold" name="Sold Price" radius={[0, 4, 4, 0]}>
                 {topPlayers.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Bar>
@@ -102,7 +102,7 @@ export default function Charts({ players, teamSummary }: { players: Player[]; te
               <PolarGrid stroke="#374151" />
               <PolarAngleAxis dataKey="team" tick={{ fill: "#9ca3af", fontSize: 11 }} />
               <Radar name="Utilisation %" dataKey="utilisation" stroke="#eab308" fill="#eab308" fillOpacity={0.25} />
-              <Tooltip formatter={(v: number) => `${v}%`} contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }} />
+              <Tooltip formatter={(v) => `${v}%`} contentStyle={{ background: "#111827", border: "1px solid #374151", borderRadius: 8 }} />
             </RadarChart>
           </ResponsiveContainer>
         </div>
