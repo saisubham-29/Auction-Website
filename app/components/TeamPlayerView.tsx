@@ -5,12 +5,15 @@ import { Player, TeamSummary } from "../lib/api";
 export default function TeamPlayerView({ players, teamSummary }: { players: Player[]; teamSummary: TeamSummary[] }) {
   const teams = useMemo(() => [...new Set(players.map(p => p.team))].sort(), [players]);
   const [selected, setSelected] = useState<string>("ALL");
+  const [modal, setModal] = useState<string | null>(null);
 
   const filtered = useMemo(() =>
     selected === "ALL" ? players : players.filter(p => p.team === selected),
     [players, selected]);
 
   const summary = teamSummary.find(t => t.team === selected);
+  const modalPlayers = useMemo(() => players.filter(p => p.team === modal), [players, modal]);
+  const modalSummary = teamSummary.find(t => t.team === modal);
   const totalSpent = filtered.reduce((s, p) => s + p.sold, 0);
 
   return (
@@ -30,7 +33,7 @@ export default function TeamPlayerView({ players, teamSummary }: { players: Play
         ))}
       </div>
 
-      {/* Stats strip (only when a team is selected) */}
+      {/* Stats strip */}
       {selected !== "ALL" && summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
@@ -59,9 +62,10 @@ export default function TeamPlayerView({ players, teamSummary }: { players: Play
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <p className="font-bold text-white">{p.player}</p>
-                    <span className="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full mt-1 inline-block">
+                    <button onClick={() => setModal(p.team)}
+                      className="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full mt-1 inline-block hover:bg-yellow-500/20 transition">
                       {p.team}
-                    </span>
+                    </button>
                   </div>
                   <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded-lg">{multiplier}x</span>
                 </div>
@@ -75,14 +79,66 @@ export default function TeamPlayerView({ players, teamSummary }: { players: Play
                     <p className="text-green-400 font-bold">₹{p.sold.toLocaleString()}</p>
                   </div>
                 </div>
-                {/* price bar */}
                 <div className="mt-3 bg-gray-800 rounded-full h-1.5">
                   <div className="bg-yellow-400 h-1.5 rounded-full transition-all"
                     style={{ width: `${Math.min((p.sold / (totalSpent || 1)) * 100 * filtered.length, 100)}%` }} />
                 </div>
+                <button onClick={() => setModal(p.team)}
+                  className="mt-3 w-full text-xs text-gray-500 hover:text-yellow-400 border border-gray-800 hover:border-yellow-500/40 rounded-lg py-1.5 transition">
+                  See full team table →
+                </button>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Modal */}
+      {modal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setModal(null)}>
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+              <div>
+                <h2 className="font-bold text-lg text-white">{modal}</h2>
+                {modalSummary && (
+                  <div className="flex gap-4 mt-1 text-xs">
+                    <span className="text-gray-400">{modalPlayers.length} players</span>
+                    <span className="text-red-400">Spent ₹{modalSummary.totalSpent.toLocaleString()}</span>
+                    <span className={modalSummary.currentAmount >= 0 ? "text-green-400" : "text-red-400"}>₹{modalSummary.currentAmount.toLocaleString()} left</span>
+                  </div>
+                )}
+              </div>
+              <button onClick={() => setModal(null)} className="text-gray-500 hover:text-white text-xl leading-none transition">✕</button>
+            </div>
+            <div className="overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-gray-900 text-gray-400">
+                  <tr>
+                    {["#", "Player", "Base Price", "Sold Price", "Multiplier"].map(h => (
+                      <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {modalPlayers.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center py-10 text-gray-500">No players yet.</td></tr>
+                  ) : modalPlayers.map((p, i) => (
+                    <tr key={i} className={`border-t border-gray-800 hover:bg-yellow-500/5 transition-colors ${i % 2 === 0 ? "bg-gray-900/40" : ""}`}>
+                      <td className="px-5 py-3 text-gray-500">{i + 1}</td>
+                      <td className="px-5 py-3 font-medium text-white">{p.player}</td>
+                      <td className="px-5 py-3 text-gray-300">₹{p.base.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-green-400 font-semibold">₹{p.sold.toLocaleString()}</td>
+                      <td className="px-5 py-3">
+                        <span className="text-xs bg-gray-800 text-yellow-400 px-2 py-0.5 rounded-lg">
+                          {p.base ? (p.sold / p.base).toFixed(1) : "—"}x
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
     </div>
