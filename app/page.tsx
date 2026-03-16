@@ -5,6 +5,7 @@ import AuctionTable from "./components/AuctionTable";
 import TeamSummaryTable from "./components/TeamSummary";
 import Charts from "./components/Charts";
 import TeamPlayerView from "./components/TeamPlayerView";
+import AdminLogin from "./components/AdminLogin";
 
 const SLIDES = [
   { url: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&q=80", caption: "The Game Begins", sub: "Season 2026 Auction" },
@@ -19,6 +20,8 @@ export default function Dashboard() {
   const [teamNames, setTeamNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"players" | "teams" | "charts" | "byteam" | "add" | "manage">("players");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [slide, setSlide] = useState(0);
   const [muted, setMuted] = useState(true);
   const [formStatus, setFormStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -75,6 +78,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-950 text-white overflow-x-hidden">
 
+      {showLogin && <AdminLogin onLogin={() => { setIsAdmin(true); setShowLogin(false); }} />}
+
       {/* HERO */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
@@ -93,6 +98,19 @@ export default function Dashboard() {
         >
           {muted ? "🔇 Unmute" : "🔊 Mute"}
         </button>
+        <div className="absolute top-5 left-5 z-20 pointer-events-auto">
+          {isAdmin ? (
+            <button onClick={() => { setIsAdmin(false); setTab("players"); }}
+              className="bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 text-yellow-400 text-xs px-3 py-1.5 rounded-full backdrop-blur transition">
+              🔓 Admin · Logout
+            </button>
+          ) : (
+            <button onClick={() => setShowLogin(true)}
+              className="bg-black/50 hover:bg-black/80 border border-gray-600 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur transition">
+              🔐 Admin Login
+            </button>
+          )}
+        </div>
         <div className="relative z-10 text-center px-4" style={{ animation: "fade-in 1s ease both" }}>
           <p className="text-yellow-400 uppercase tracking-[0.3em] text-sm font-semibold mb-3 animate-pulse">🏏 Live Auction</p>
           <h1 className="text-5xl md:text-7xl font-black tracking-tight drop-shadow-2xl">
@@ -135,8 +153,10 @@ export default function Dashboard() {
               { key: "teams", label: "🏆 Team Summary" },
               { key: "charts", label: "📈 Charts" },
               { key: "byteam", label: "🔍 By Team" },
-              { key: "add", label: "➕ Add Entry" },
-              { key: "manage", label: "⚙️ Manage Teams" },
+              ...(isAdmin ? [
+                { key: "add", label: "➕ Add Entry" },
+                { key: "manage", label: "⚙️ Manage Teams" },
+              ] : []),
             ] as const).map(({ key, label }) => (
               <button key={key} onClick={() => setTab(key)}
                 className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${tab === key ? "bg-yellow-500 text-black" : "text-gray-400 hover:text-white"}`}>
@@ -156,7 +176,7 @@ export default function Dashboard() {
         ) : (
           <div>
             {/* PLAYERS */}
-            {tab === "players" && <AuctionTable data={players} teamNames={teamNames} onRefresh={refresh} />}
+            {tab === "players" && <AuctionTable data={players} teamNames={teamNames} onRefresh={refresh} isAdmin={isAdmin} />}
 
             {/* TEAMS */}
             {tab === "teams" && <TeamSummaryTable data={teamSummary} />}

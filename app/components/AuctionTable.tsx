@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import { Player, editPlayer, deletePlayer } from "../lib/api";
 
-export default function AuctionTable({ data, teamNames, onRefresh }: { data: Player[]; teamNames: string[]; onRefresh: () => void }) {
+export default function AuctionTable({ data, teamNames, onRefresh, isAdmin }: { data: Player[]; teamNames: string[]; onRefresh: () => void; isAdmin?: boolean }) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<keyof Player>("player");
   const [sortAsc, setSortAsc] = useState(true);
@@ -114,11 +114,13 @@ export default function AuctionTable({ data, teamNames, onRefresh }: { data: Pla
                     <td className="px-5 py-3"><span className="bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 text-xs px-2 py-0.5 rounded-full">{r.team}</span></td>
                     <td className="px-5 py-3 text-green-400 font-semibold">₹{r.sold.toLocaleString()}</td>
                     <td className="px-5 py-3 flex gap-3">
-                      <button onClick={() => startEdit(r, i)} className="text-gray-500 hover:text-yellow-400 text-xs transition">✏️ Edit</button>
-                      <button onClick={() => handleDelete(r, i)} disabled={deletingIdx === i}
-                        className="text-gray-500 hover:text-red-400 text-xs transition disabled:opacity-50">
-                        {deletingIdx === i ? "…" : "🗑️ Delete"}
-                      </button>
+                      {isAdmin && <>
+                        <button onClick={() => startEdit(r, i)} className="text-gray-500 hover:text-yellow-400 text-xs transition">✏️ Edit</button>
+                        <button onClick={() => handleDelete(r, i)} disabled={deletingIdx === i}
+                          className="text-gray-500 hover:text-red-400 text-xs transition disabled:opacity-50">
+                          {deletingIdx === i ? "…" : "🗑️ Delete"}
+                        </button>
+                      </>}
                     </td>
                   </>
                 )}
